@@ -1,4 +1,6 @@
 import pygame
+from state_interface import State
+from main_menu import MainMenu
 
 class Game:
     def __init__(self, res: tuple[int, int] = (640, 400)) -> None:
@@ -8,7 +10,7 @@ class Game:
         self.clock: pygame.time.Clock = pygame.time.Clock()
         self.run = True
         self.fps = 60
-        self.state = "menu" # should be object this is just a place holder
+        self.state: State  = MainMenu()
 
     def main(self) -> None: # game loop
         dt = 0
@@ -18,16 +20,17 @@ class Game:
                 if event.type == pygame.QUIT:
                     self.run = False
                     break
-            self.input()
+            self.handle_input()
             self.update(dt)
             self.draw()
 
     def update(self, dt: float) -> None:
-        pass
+        self.state.update(dt)
 
-    def input(self) -> None:
-        pass
+    def handle_input(self) -> None:
+        self.state.handle_input()
 
     def draw(self) -> None:
-        self.win.fill("#000000")
+        self.win.fill("black")
+        self.state.draw(self.win)
         pygame.display.flip()
