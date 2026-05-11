@@ -13,7 +13,8 @@ The goal of this project is to demonstrate my ability to design and implement so
 An alien fleet is coming. The player controlls the last defence turret and must destroy the aggressors before they reach Earth. Each wave becomes more dangerous the closer it comes to Earth, needing timing and precision to survive. 
 
 ## Install
-In order to install the game:
+Installation steps:
+0. Install python
 1. Download or clone the project
 2. navigate to the project direcotry
 3. setup python virtual environment, venv
