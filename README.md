@@ -1,5 +1,9 @@
 # Space invaders
 
+<p align="center">
+  <img src="assets/banner.png" alt="Space Invaders Banner" width="800"/>
+</p>
+
 ## About
 This project is a clone of the classic game space invaders designed by [Tomohiro Nishikado](https://en.wikipedia.org/wiki/Tomohiro_Nishikado) and developed by Taito company.
 It is built with **python** and **pygame**, using **modular software architecture** and **object-orientated-design**.
