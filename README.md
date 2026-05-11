@@ -14,12 +14,12 @@ An alien fleet is coming. The player controlls the last defence turret and must 
 
 ## Install
 Installation steps:
-0. Install python
-1. Download or clone the project
-2. navigate to the project direcotry
-3. setup python virtual environment, venv
-4. activate the venv
-5. install pygame-ce with pip
+1. Install python
+2. Download or clone the project
+3. navigate to the project direcotry
+4. setup python virtual environment, venv
+5. activate the venv
+6. install pygame-ce with pip
 
 Navigate to the project dir:
 ``` sh
