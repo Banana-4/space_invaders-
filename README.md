@@ -1,5 +1,4 @@
 # About
-
 This project is a simple clone of the game space invaders. The goal is to play around with pygame, python and programm design.
 The end result should be a working game and not a perfect program.
 
@@ -43,10 +42,18 @@ Between each space ship there is a gap through which the plasma round can pass t
 # Instalation Instructions:
 
 # Design
-
-## File organization:
+The main design principles are OOP. 
 
 ## Modules
+1. Game - this module is responsiable for creating a environment and coordinating other modules to form the game loop.
+2. Entities - this module is responsiable for storing and changing data of game entites.
+3. GUI - for menus.
+4. Sound - game sound engine.
+5. File i/o - for saving and loading settings, highscores...
+6. Event messaging subsystem.
+7. Player input - for controlls.
 
 
+
+## File organization:
 
