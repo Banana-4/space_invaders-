@@ -7,3 +7,39 @@ The goal of this project is to demonstrate my ability to design and implement so
 
 ### Game Description:
 An alien fleet is coming. The player controlls the last defence turret and must destroy the aggressors before they reach Earth. Each wave becomes more dangerous the closer it comes to Earth, needing timing and precision to survive. 
+
+## Install
+In order to install the game:
+1. Download or clone the project
+2. navigate to the project direcotry
+3. setup python virtual environment, venv
+4. activate the venv
+5. install pygame-ce with pip
+
+Navigate to the project dir:
+``` sh
+cd <Project dir> # replace <Project dir> with the full directory path in which the project is
+python -m venv <dir> # replace <dir> with the desired venv direcory name
+```
+
+Linux venv activation:
+``` sh
+source <dir>/bin/activate # activates the venv
+```
+
+Windows  venv activation:
+``` sh
+source <dir>/scripts/activate # activates the venv
+```
+
+Install pygame-ce:
+``` sh
+python -m pip install pygame-ce # install pygame from Pypi
+```
+
+## How to play:
+To run the game, navigate to the project directory, activate the venv and execute this command:
+``` sh
+python main.py
+```
+
