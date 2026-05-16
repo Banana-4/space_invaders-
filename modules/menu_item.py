@@ -6,25 +6,31 @@ import pygame
 class MenuItem:
     def __init__(
         self,
-        option_name: str,
-        command: Callable[[], None],
-        color: str = "white",
-        foc_color: str = "black",
-        fam: str = None,
+        name: str,
+        command: Callable[[], bool],
+        pos: tuple[int, int] = (0, 0),
+        color: str | tuple[int, int, int] = "white",
+        foc_color: str | tuple[int, int, int] = "black",
+        fam: str | None = "",
         size: int = 16,
     ) -> None:
-        self.option_name = option_name
+        self.name = name
         self.command = command
         self.font = pygame.font.Font(fam, size)
         self.color = color
         self.foc_color = foc_color
         self.focus = False
+        self.pos = pos
 
-    def recive(self, event: pygame.Event) -> None:
-        if event.type == FOCUSED_ITEM:
-            self.focus = True
-        if event.type == SELECT_ITEM:
-            self.command()
+    def toggle_focus(self) -> None:
+        self.focus = not self.focus
 
-    def draw(self) -> None:
-        pass
+    def draw(self, surface: pygame.SurfaceType) -> None:
+        ren_txt = self.font.render(
+            self.name, True, self.foc_color if self.focus else self.color
+        )
+        surface.blit(ren_txt, (self.pos[0] - ren_txt.get_width(), self.pos[1]))
+
+    def exec(self) -> None:
+        print(f"{self.name}")
+        self.command()
