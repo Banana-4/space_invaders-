@@ -18,7 +18,7 @@ class Game:
         self.clock: pygame.time.Clock = pygame.time.Clock()
         self.run = True
         self.fps = 60
-        self.state: State = MainMenu(self.win_size)
+        self.state: State = MainMenu([], self.win_size)
 
     def main(self) -> None:  # game loop
         dt = 0
