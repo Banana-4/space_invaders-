@@ -1,6 +1,6 @@
 import pygame
 
-from modules.custom_events import QUIT_GAME
+from modules.custom_events import HIGHSCHORE_STATE, PLAY_STATE, QUIT_GAME
 from modules.main_menu import MainMenu
 from modules.state_interface import State
 
@@ -35,12 +35,13 @@ class Game:
         self.state.update(dt)
 
     def handle_input(self) -> None:
-        self.state.handle_input()
-        for event in pygame.event.get():
-            if event.type == QUIT_GAME:
-                self.run = False
-            else:
-                pygame.event.post(event)
+        event = self.state.handle_input()
+        if event == QUIT_GAME:
+            self.run = False
+        elif event == PLAY_STATE:
+            pass
+        elif event == HIGHSCHORE_STATE:
+            pass
 
     def draw(self) -> None:
         self.win.fill("black")
