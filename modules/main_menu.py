@@ -23,6 +23,7 @@ class MainMenu(State):
         self.active_color = (255, 220, 80)
         self.win_size = win_size
         self.focused = 0
+        self.focus_move = 0
         # test items list
         items = [
             ("Play", lambda: pygame.event.post(pygame.event.Event(PLAY_STATE))),
@@ -38,6 +39,13 @@ class MainMenu(State):
 
     def update(self, dt: float) -> None:
         self.menu_items[self.focused].toggle_focus()
+        self.focused += self.focus_move
+        self.focus_move = 0
+        if self.focused == -1:
+            self.focused = len(self.menu_items) - 1
+        elif self.focused == len(self.menu_items):
+            self.focused = 0
+        self.menu_items[self.focused].toggle_focus()
 
     def handle_input(self) -> None:
         for event in pygame.event.get():
@@ -47,13 +55,9 @@ class MainMenu(State):
                 if event.key == pygame.K_ESCAPE:
                     pygame.event.post(pygame.event.Event(QUIT_GAME))
                 if event.key == pygame.K_UP:
-                    self.focused -= 1
-                    if self.focused < 0:
-                        self.focused = len(self.menu_items) - 1
+                    self.focus_move = -1
                 if event.key == pygame.K_DOWN:
-                    self.focused += 1
-                    if self.focused == len(self.menu_items):
-                        self.focused = 0
+                    self.focus_move = 1
                 if event.key == pygame.K_RETURN:
                     self.menu_items[self.focused].exec()
 
