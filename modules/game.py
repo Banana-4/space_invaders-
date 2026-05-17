@@ -39,6 +39,8 @@ class Game:
         for event in pygame.event.get():
             if event.type == QUIT_GAME:
                 self.run = False
+            else:
+                pygame.event.post(event)
 
     def draw(self) -> None:
         self.win.fill("black")
