@@ -39,27 +39,28 @@ class MainMenu(State):
 
     def update(self, dt: float) -> None:
         self.menu_items[self.focused].toggle_focus()
-        self.focused += self.focus_move
+        self.focused = (self.focused + self.focus_move) % len(self.menu_items)
         self.focus_move = 0
-        if self.focused == -1:
-            self.focused = len(self.menu_items) - 1
-        elif self.focused == len(self.menu_items):
-            self.focused = 0
         self.menu_items[self.focused].toggle_focus()
 
-    def handle_input(self) -> None:
+    def handle_input(self) -> int:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                pygame.event.post(pygame.event.Event(QUIT_GAME))
+                return QUIT_GAME
+            elif event.type == PLAY_STATE:
+                return PLAY_STATE
+            elif event.type == HIGHSCHORE_STATE:
+                return HIGHSCHORE_STATE
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    pygame.event.post(pygame.event.Event(QUIT_GAME))
-                if event.key == pygame.K_UP:
+                    return QUIT_GAME
+                elif event.key == pygame.K_UP:
                     self.focus_move = -1
-                if event.key == pygame.K_DOWN:
+                elif event.key == pygame.K_DOWN:
                     self.focus_move = 1
-                if event.key == pygame.K_RETURN:
+                elif event.key == pygame.K_RETURN:
                     self.menu_items[self.focused].exec()
+        return -1
 
     def draw(self, surface: pygame.Surface) -> None:
         surface.blit(self.bg, (0, 0))
