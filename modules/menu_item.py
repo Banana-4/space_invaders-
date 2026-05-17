@@ -32,5 +32,4 @@ class MenuItem:
         surface.blit(ren_txt, (self.pos[0] - ren_txt.get_width(), self.pos[1]))
 
     def exec(self) -> None:
-        print(f"{self.name}")
         self.command()
