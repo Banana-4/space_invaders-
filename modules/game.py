@@ -2,6 +2,7 @@ import pygame
 
 from modules.custom_events import HIGHSCHORE_STATE, PLAY_STATE, QUIT_GAME
 from modules.main_menu import MainMenu
+from modules.play import Play
 from modules.state_interface import State
 
 
@@ -39,7 +40,7 @@ class Game:
         if event == QUIT_GAME:
             self.run = False
         elif event == PLAY_STATE:
-            pass
+            self.state = Play(self.win_size)
         elif event == HIGHSCHORE_STATE:
             pass
 
