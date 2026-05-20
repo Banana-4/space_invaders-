@@ -14,14 +14,17 @@ class Play(State):
             "turret.png",
             (96, 48),
             (self.win_size[0] // 2 - 29, self.win_size[1] - 48),
-            300,
-            0.5,
+            60,
+            1,
         )
         self.bg = pygame.image.load(os.path.join("assets", "background.png"))
         self.bg = pygame.transform.scale(self.bg, self.win_size)
+        self.projectiles = []
 
     def update(self, dt: float) -> None:
         self.turret.update(dt)
+        for p in self.projectiles:
+            p.update(dt)
 
     def handle_input(self) -> int:
         for event in pygame.event.get():
@@ -30,16 +33,25 @@ class Play(State):
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     return modules.custom_events.QUIT_GAME
-                if event.key == pygame.K_a:
-                    self.turret.move(True)
-                else:
-                    self.turret.stop()
-                if event.key == pygame.K_d:
-                    self.turret.move()
-                else:
-                    self.turret.stop()
+
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_a]:
+                self.turret.move(True)
+            if keys[pygame.K_d]:
+                self.turret.move(False)
+            if not keys[pygame.K_a] and not keys[pygame.K_d]:
+                self.turret.stop()
+            if keys[pygame.K_SPACE]:
+                prj = self.turret.shoot()
+                if prj:
+                    self.projectiles.append(prj)
         return -1
 
     def draw(self, surface: pygame.Surface) -> None:
         surface.blit(self.bg, (0, 0))
         self.turret.draw(surface)
+        for p in self.projectiles:
+            p.draw(surface)
+
+    def collison(self) -> None:
+        pass
