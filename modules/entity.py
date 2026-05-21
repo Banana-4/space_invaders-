@@ -17,6 +17,7 @@ class Entity:
         pass
 
     def draw(self, surface: pygame.Surface) -> None:
+        self.box.x = int(self.pos[0])
         surface.blit(self.sprite, self.box)
 
 
@@ -68,8 +69,6 @@ class Turret(Entity):
         self.speed = 0
 
     def collision(self, type: int) -> None:
-        if type == 0:
-            self.box.x = int(self.pos[0])
         if type == 1:
             self.pos[0] = self.box.x
         if type == 2:

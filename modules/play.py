@@ -55,7 +55,6 @@ class Play(State):
             p.draw(surface)
 
     def collison(self) -> None:
-        no_collision = 0
         border = 1
         prj_hit = 2
         if (
@@ -63,5 +62,6 @@ class Play(State):
             or self.turret.pos[0] > self.win_size[0] - self.turret.scale[0]
         ):
             self.turret.collision(border)
-        else:
-            self.turret.collision(no_collision)
+        for prj in self.projectiles:
+            if prj.box.colliderect(self.turret.box):
+                self.turret.collision(prj_hit)
