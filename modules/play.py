@@ -25,6 +25,7 @@ class Play(State):
         self.turret.update(dt)
         for p in self.projectiles:
             p.update(dt)
+        self.collison()
 
     def handle_input(self) -> int:
         for event in pygame.event.get():
@@ -54,4 +55,13 @@ class Play(State):
             p.draw(surface)
 
     def collison(self) -> None:
-        pass
+        no_collision = 0
+        border = 1
+        prj_hit = 2
+        if (
+            self.turret.pos[0] < 0
+            or self.turret.pos[0] > self.win_size[0] - self.turret.scale[0]
+        ):
+            self.turret.collision(border)
+        else:
+            self.turret.collision(no_collision)
