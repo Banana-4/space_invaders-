@@ -23,14 +23,11 @@ class Game:
 
     def main(self) -> None:  # game loop
         dt = 0
-        while True:
-            dt = self.clock.tick(self.fps)
-            if self.run:
-                self.handle_input()
-                self.update(dt)
-                self.draw()
-            else:
-                break
+        while self.run:
+            dt = self.clock.tick(self.fps) / 1000
+            self.handle_input()
+            self.update(dt)
+            self.draw()
 
     def update(self, dt: float) -> None:
         self.state.update(dt)
@@ -40,7 +37,7 @@ class Game:
         if event == QUIT_GAME:
             self.run = False
         elif event == PLAY_STATE:
-            self.state = Play(self.win_size)
+            self.state = Play(self.win_size, self.fps)
         elif event == HIGHSCHORE_STATE:
             pass
 

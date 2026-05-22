@@ -1,6 +1,9 @@
 import os
+import random
 
 import pygame
+
+from modules.custom_events import SHOT_FIRED
 
 
 class Entity:
@@ -34,6 +37,8 @@ class Projectile(Entity):
         self.alive = True
 
     def update(self, dt: float) -> None:
+        if not self.alive:
+            self.speed = 0
         self.pos[1] += self.speed * dt
         self.box.y = int(self.pos[1])
 
@@ -80,7 +85,7 @@ class Turret(Entity):
             return Projectile(
                 "ammo.png",
                 (20, 40),
-                (self.pos[0] + self.scale[0] // 2 - 10, self.pos[1] - 10),
+                (self.pos[0] + self.scale[0] // 2 - 10, self.pos[1] - 40),
                 self.p_speed,
             )
 
@@ -98,6 +103,7 @@ class SpaceShip(Entity):
         self.speed = speed
         self.fire_chance = fire_chance
         self.hp = 1
+        self.down = False
 
     def update(self, dt: float) -> None:
         if self.down:
@@ -106,6 +112,9 @@ class SpaceShip(Entity):
             self.down = False
         else:
             self.pos[0] += self.speed[0] * dt
+        num = random.random()
+        if num <= self.fire_chance:
+            pygame.event.post(pygame.event.Event(SHOT_FIRED))
 
     def collision(self, type: int) -> None:
         if type == 0:
