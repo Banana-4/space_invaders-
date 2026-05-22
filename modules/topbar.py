@@ -19,5 +19,8 @@ class Topbar:
         surface.blit(self.bg, (0, 0))
         score_txt = self.font.render(str(score), True, self.color)
         hp_txt = self.font.render(str(hp), True, self.color)
-        surface.blit(score_txt, (self.width - self.font_size, self.font_size))
-        surface.blit(hp_txt, (self.font_size, self.font_size))
+        y = self.font_size - hp_txt.get_height() // 2
+        surface.blit(
+            score_txt, (self.width - self.font_size - score_txt.get_width(), y)
+        )
+        surface.blit(hp_txt, (self.font_size, y))
