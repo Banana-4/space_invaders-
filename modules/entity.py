@@ -3,7 +3,7 @@ import random
 
 import pygame
 
-from modules.custom_events import SHOT_FIRED
+from modules.custom_events import FLEET_COLLISION, SHOT_FIRED
 
 
 class Entity:
@@ -21,6 +21,7 @@ class Entity:
 
     def draw(self, surface: pygame.Surface) -> None:
         self.box.x = int(self.pos[0])
+        self.box.y = int(self.pos[1])
         surface.blit(self.sprite, self.box)
 
 
@@ -103,28 +104,39 @@ class SpaceShip(Entity):
         self.speed = speed
         self.fire_chance = fire_chance
         self.hp = 1
-        self.down = False
+        self.change_course = False
+        self.next_row = 0
+
+    def change_direction(self) -> None:
+        self.next_row = 3
+        self.change_course = not self.change_course
+        self.pos[0] = self.box.x
+        self.speed[0] *= -1
 
     def update(self, dt: float) -> None:
-        if self.down:
-            self.pos[1] += self.scale[1]
-            self.speed[0] *= -1
-            self.down = False
+        if self.change_course:
+            if self.next_row > 0:
+                self.pos[1] += self.speed[1] * dt
+                self.next_row -= self.speed[1] * dt
+            else:
+                self.change_course = False
         else:
+            if self.speed[0] < 0:
+                print(self.speed[0])
             self.pos[0] += self.speed[0] * dt
         num = random.random()
         if num <= self.fire_chance:
             pygame.event.post(pygame.event.Event(SHOT_FIRED))
 
     def collision(self, type: int) -> None:
-        if type == 0:
-            self.box.x = int(self.pos[0])
-            self.box.y = int(self.pos[1])
         if type == 1:
-            self.pos[0] = self.box.x
-            self.down = True
+            pygame.event.post(pygame.event.Event(FLEET_COLLISION))
         if type == 2:
             self.hp -= 1
+
+    def kill(self):
+        # add explosion on death
+        pass
 
     def shoot(self):
         prj_speed = 40
@@ -138,3 +150,62 @@ class SpaceShip(Entity):
             ),
             prj_speed,
         )
+
+
+class Fleet:
+    def __init__(
+        self,
+        fleet_size: tuple[int, int],
+        top: int,
+        rows: int,
+        columns: int,
+        speed: list[float],
+        fire_chance: float,
+    ) -> None:
+        self.gap_x = 30
+        self.gap_y = 30
+        self.top = top
+        self.fire_chance = fire_chance
+        self.rows = rows
+        self.columns = columns
+        self.fleet_box = pygame.Rect(0, self.top, fleet_size[0], fleet_size[1])
+        self.speed = speed
+        self.fleet = []
+        self.sprite_scale = (
+            (self.fleet_box.width - 2 * self.gap_x - self.gap_x * self.columns)
+            // self.columns,
+            (self.fleet_box.height - self.gap_y * self.rows - 2 * self.gap_y)
+            // self.rows,
+        )
+        self.create_fleet()
+
+    def create_fleet(self) -> None:
+        start_x = self.gap_x
+        y = self.gap_y + self.top
+        for _ in range(self.rows):
+            x = start_x
+            for _ in range(self.columns):
+                self.fleet.append(
+                    SpaceShip(
+                        "spaceship.jpg",
+                        self.sprite_scale,
+                        (x, y),
+                        self.speed.copy(),
+                        self.fire_chance,
+                    )
+                )
+                x += self.sprite_scale[0] + self.gap_x
+            y += self.sprite_scale[1] + self.gap_y
+
+    def collision(self):
+        for ship in self.fleet:
+            ship.change_direction()
+
+    def update(self, dt: float) -> None:
+        self.fleet = [ship for ship in self.fleet if ship.hp != 0]
+        for ship in self.fleet:
+            ship.update(dt)
+
+    def draw(self, surface: pygame.Surface) -> None:
+        for ship in self.fleet:
+            ship.draw(surface)
