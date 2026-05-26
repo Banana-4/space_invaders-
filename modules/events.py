@@ -26,16 +26,27 @@ class EventDispathchare:
         self.events = []
 
     def register(self, listener, events_id: list[EventID]) -> None:
+        if listener not in self.listeners:
+            self.listeners[listener] = set()
         for id in events_id:
-            if id not in self.listeners:
-                self.listeners[id] = [listener]
-            else:
-                self.listeners[id].append(listener)
+            self.listeners[listener].add(id)
 
     def emitte(self, event: Event) -> None:
         self.events.append(event)
 
-    def notifie(self) -> None:
-        for event in self.events:
-            for listener in self.listeners[event.id]:
-                listener.notify(event)
+    def notify(self) -> None:
+        while len(self.events) > 0:
+            event = self.events.pop()
+            for listener, ids in self.listeners.items():
+                if event.id in ids:
+                    listener.notify(event)
+                    if event.id in (
+                        EventID.PLAY_STATE,
+                        EventID.HIGHSCHORE_STATE,
+                        EventID.MENU_STATE,
+                    ):
+                        self.events = []
+                        return
+
+
+events_proxy = EventDispathchare()

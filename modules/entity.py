@@ -3,7 +3,7 @@ import random
 
 import pygame
 
-from modules.custom_events import FLEET_COLLISION, SHOT_FIRED
+from modules.events import Event, EventID, events_proxy
 
 
 class Entity:
@@ -99,6 +99,7 @@ class SpaceShip(Entity):
         pos: tuple[float, float],
         speed: list[float],
         fire_chance: float,
+        id: int,
     ) -> None:
         super().__init__(sprite, scale, pos)
         self.speed = speed
@@ -106,6 +107,7 @@ class SpaceShip(Entity):
         self.hp = 1
         self.change_course = False
         self.next_row = 0
+        self.id = id
 
     def change_direction(self) -> None:
         self.next_row = 3
@@ -121,18 +123,13 @@ class SpaceShip(Entity):
             else:
                 self.change_course = False
         else:
-            if self.speed[0] < 0:
-                print(self.speed[0])
             self.pos[0] += self.speed[0] * dt
         num = random.random()
         if num <= self.fire_chance:
-            pygame.event.post(pygame.event.Event(SHOT_FIRED))
+            events_proxy.emitte(Event(EventID.SHOT_FIRED, [self.id]))
 
-    def collision(self, type: int) -> None:
-        if type == 1:
-            pygame.event.post(pygame.event.Event(FLEET_COLLISION))
-        if type == 2:
-            self.hp -= 1
+    def hit(self) -> None:
+        self.hp -= 1
 
     def kill(self):
         # add explosion on death
@@ -182,7 +179,7 @@ class Fleet:
     def create_fleet(self) -> None:
         start_x = self.gap_x
         y = self.gap_y + self.top
-        for _ in range(self.rows):
+        for id in range(self.rows):
             x = start_x
             for _ in range(self.columns):
                 self.fleet.append(
@@ -192,6 +189,7 @@ class Fleet:
                         (x, y),
                         self.speed.copy(),
                         self.fire_chance,
+                        id,
                     )
                 )
                 x += self.sprite_scale[0] + self.gap_x

@@ -1,17 +1,14 @@
 import pygame
 
-from modules.custom_events import HIGHSCHORE_STATE, PLAY_STATE, QUIT_GAME
+from modules.events import Event, EventID, events_proxy
 from modules.main_menu import MainMenu
 from modules.play import Play
 from modules.state_interface import State
 
 
 class Game:
-    def __init__(self, win_size: tuple[int, int] = (640, 400)) -> None:
-        if win_size[0] > 0 and win_size[1] > 0:
-            self.win_size = win_size
-        else:
-            self.win_size = (640, 400)
+    def __init__(self, win_size: tuple[int, int] = (400, 800)) -> None:
+        self.win_size = win_size
         pygame.init()
         self.caption: str = "Space Invaders"
         self.win: pygame.Surface = pygame.display.set_mode(self.win_size)
@@ -20,6 +17,15 @@ class Game:
         self.run = True
         self.fps = 60
         self.state: State = MainMenu([], self.win_size)
+        events_proxy.register(
+            self,
+            [
+                EventID.QUIT_GAME,
+                EventID.MENU_STATE,
+                EventID.PLAY_STATE,
+                EventID.HIGHSCHORE_STATE,
+            ],
+        )
 
     def main(self) -> None:  # game loop
         dt = 0
@@ -30,16 +36,19 @@ class Game:
             self.draw()
 
     def update(self, dt: float) -> None:
+        events_proxy.notify()
         self.state.update(dt)
 
-    def handle_input(self) -> None:
-        event = self.state.handle_input()
-        if event == QUIT_GAME:
+    def notify(self, event: Event) -> None:
+        if event.id == EventID.QUIT_GAME:
             self.run = False
-        elif event == PLAY_STATE:
+        elif event.id == EventID.PLAY_STATE:
             self.state = Play(self.win_size, self.fps)
-        elif event == HIGHSCHORE_STATE:
+        elif event.id == EventID.HIGHSCHORE_STATE:
             pass
+
+    def handle_input(self) -> None:
+        self.state.handle_input()
 
     def draw(self) -> None:
         self.win.fill("black")

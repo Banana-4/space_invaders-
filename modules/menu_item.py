@@ -7,7 +7,7 @@ class MenuItem:
     def __init__(
         self,
         name: str,
-        command: Callable[[], bool],
+        command: Callable[[], None],
         pos: tuple[int, int] = (0, 0),
         color: str | tuple[int, int, int] = "white",
         foc_color: str | tuple[int, int, int] = "black",

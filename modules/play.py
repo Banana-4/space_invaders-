@@ -2,8 +2,8 @@ import os
 
 import pygame
 
-import modules.custom_events
 from modules.entity import Fleet, SpaceShip, Turret
+from modules.events import Event, EventID, events_proxy
 from modules.state_interface import State
 from modules.topbar import Topbar
 
@@ -37,6 +37,7 @@ class Play(State):
             [35, 30],
             0.005 / self.fps,
         )
+        events_proxy.register(self, [EventID.FLEET_COLLISION, EventID.SHOT_FIRED])
 
     def update(self, dt: float) -> None:
         self.turret.update(dt)
@@ -49,17 +50,19 @@ class Play(State):
         self.player_prj = [p for p in self.player_prj if p.alive]
         self.alien_prj = [p for p in self.alien_prj if p.alive]
 
-    def handle_input(self) -> int:
+    def notify(self, event: Event) -> None:
+        if event.id == EventID.SHOT_FIRED:
+            self.alien_prj.append(self.alien_fleet.fleet[event.data[0]].shoot())
+        elif event.id == EventID.FLEET_COLLISION:
+            self.alien_fleet.collision()
+
+    def handle_input(self) -> None:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                return modules.custom_events.QUIT_GAME
+                events_proxy.emitte(Event(EventID.QUIT_GAME, []))
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    return modules.custom_events.QUIT_GAME
-            if event.type == modules.custom_events.SHOT_FIRED:
-                self.alien_prj.append(self.alien_fleet.fleet[0].shoot())
-            if event.type == modules.custom_events.FLEET_COLLISION:
-                self.alien_fleet.collision()
+                    events_proxy.emitte(Event(EventID.QUIT_GAME, []))
         keys = pygame.key.get_pressed()
         if keys[pygame.K_a]:
             self.turret.move(True)
@@ -72,15 +75,13 @@ class Play(State):
             if prj:
                 self.player_prj.append(prj)
 
-        return -1
-
     def draw(self, surface: pygame.Surface) -> None:
         surface.blit(self.bg, (0, 0))
         self.turret.draw(surface)
+        for p in self.alien_prj:
+            p.draw(surface)
         self.alien_fleet.draw(surface)
         for p in self.player_prj:
-            p.draw(surface)
-        for p in self.alien_prj:
             p.draw(surface)
         self.topbar.draw(self.score, self.turret.hp, surface)
 
@@ -102,10 +103,11 @@ class Play(State):
                 prj.kill()
         for ship in self.alien_fleet.fleet:
             if ship.pos[0] < 0 or ship.pos[0] > self.win_size[0] - ship.scale[0]:
-                ship.collision(border)
+                events_proxy.emitte(Event(EventID.FLEET_COLLISION, []))
                 break
         for ship in self.alien_fleet.fleet:
             for prj in self.player_prj:
                 if prj.box.colliderect(ship.box):
                     prj.kill()
-                    ship.collision(prj_hit)
+                    ship.hit()
+                    self.score += 10
