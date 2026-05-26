@@ -35,8 +35,8 @@ class EventDispathchare:
         self.events.append(event)
 
     def notify(self) -> None:
-        while len(self.events) > 0:
-            event = self.events.pop()
+        state_change = False
+        for event in self.events:
             for listener, ids in self.listeners.items():
                 if event.id in ids:
                     listener.notify(event)
@@ -45,8 +45,11 @@ class EventDispathchare:
                         EventID.HIGHSCHORE_STATE,
                         EventID.MENU_STATE,
                     ):
-                        self.events = []
-                        return
+                        state_change = True
+                        break
+            if state_change:
+                break
+        self.events = []
 
 
 events_proxy = EventDispathchare()
