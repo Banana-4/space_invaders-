@@ -2,7 +2,7 @@ import os
 
 import pygame
 
-from modules.entity import Fleet, SpaceShip, Turret
+from modules.entity import Fleet, Shield, SpaceShip, Turret
 from modules.events import Event, EventID, events_proxy
 from modules.state_interface import State
 from modules.topbar import Topbar
@@ -38,6 +38,12 @@ class Play(State):
             0.005 / self.fps,
         )
         events_proxy.register(self, [EventID.FLEET_COLLISION, EventID.SHOT_FIRED])
+        self.shields = [
+            Shield("shield.png", (100, 100), (0, 4 * self.win_size[1] // 5)),
+            Shield("shield.png", (100, 100), (200, 4 * self.win_size[1] // 5)),
+            Shield("shield.png", (100, 100), (400, 4 * self.win_size[1] // 5)),
+            Shield("shield.png", (100, 100), (600, 4 * self.win_size[1] // 5)),
+        ]
 
     def update(self, dt: float) -> None:
         self.turret.update(dt)
@@ -84,6 +90,8 @@ class Play(State):
         for p in self.player_prj:
             p.draw(surface)
         self.topbar.draw(self.score, self.turret.hp, surface)
+        for shield in self.shields:
+            shield.draw(surface)
 
     def collison(self) -> None:
         border = 1
@@ -101,13 +109,24 @@ class Play(State):
             if prj.box.colliderect(self.turret.box):
                 self.turret.collision(prj_hit)
                 prj.kill()
+            for shield in self.shields:
+                if prj.box.colliderect(shield.box):
+                    prj.kill()
+                    shield.hit()
         for ship in self.alien_fleet.fleet:
             if ship.pos[0] < 0 or ship.pos[0] > self.win_size[0] - ship.scale[0]:
                 events_proxy.emitte(Event(EventID.FLEET_COLLISION, []))
                 break
-        for ship in self.alien_fleet.fleet:
-            for prj in self.player_prj:
+
+        for prj in self.player_prj:
+            for ship in self.alien_fleet.fleet:
+                if not prj.alive:
+                    continue
                 if prj.box.colliderect(ship.box):
                     prj.kill()
                     ship.hit()
                     self.score += 10
+            for shield in self.shields:
+                if prj.box.colliderect(shield.box):
+                    prj.kill()
+                    shield.hit()

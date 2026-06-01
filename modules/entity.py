@@ -209,44 +209,15 @@ class Fleet:
             ship.draw(surface)
 
 
-class Shield:
+class Shield(Entity):
     def __init__(
-        self,
-        size: tuple[int, int],
-        pos: tuple[float, float],
-        color: str | tuple[int, int, int],
+        self, sprite: str, scale: tuple[int, int], pos: tuple[float, float]
     ) -> None:
-        self.hp = 1
-        self.size = size
-        self.pos = pos
-        self.color = color
-        self.blocks = []
-        print("Building shie")
-        self.build_shield()
+        super().__init__(sprite, scale, pos)
+        self.hp = 5
 
-    def build_shield(self):
-        def quad_curve(x):
-            return ((x - self.pos[0]) ** 2) * 1 / self.size[1] + self.pos[1]
+    def hit(self) -> None:
+        self.hp -= 1
 
-        block_size = (10, 10)
-        layers = 3
-        for layer in range(layers):
-            blocks = []
-            for x in range(
-                int(self.pos[0]), int(self.pos[0]) + self.size[0] + 10, block_size[0]
-            ):
-                blocks.append(
-                    pygame.Rect(
-                        x,
-                        quad_curve(x),
-                        block_size[0],
-                        block_size[1],
-                    )
-                )
-            self.blocks.append(blocks)
-        print(self.blocks)
-
-    def draw(self, surface: pygame.Surface) -> None:
-        for blocks in self.blocks:
-            for block in blocks:
-                pygame.draw.rect(surface, self.color, block)
+    def update(self, dt: float) -> None:
+        pass
