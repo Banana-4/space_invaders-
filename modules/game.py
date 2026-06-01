@@ -46,6 +46,8 @@ class Game:
             self.state = Play(self.win_size, self.fps)
         elif event.id == EventID.HIGHSCHORE_STATE:
             pass
+        elif event.id == EventID.MENU_STATE:
+            self.state = MainMenu([], self.win_size)
 
     def handle_input(self) -> None:
         self.state.handle_input()

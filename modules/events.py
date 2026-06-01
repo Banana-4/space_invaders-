@@ -12,6 +12,8 @@ class EventID(Enum):
     WIN = 7
     SHOT_FIRED = 8
     FLEET_COLLISION = 9
+    HIT = 10
+    BORDER_COLLISON = 11
 
 
 class Event:

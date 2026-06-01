@@ -13,7 +13,7 @@ class Play(State):
         self.win_size = win_size
         self.sprite_scale = (96, 48)
         self.turret = Turret(
-            "turret.png",
+            "player.png",
             self.sprite_scale,
             (
                 self.win_size[0] // 2 - self.sprite_scale[0] // 2,
@@ -52,15 +52,20 @@ class Play(State):
             p.update(dt)
         for p in self.alien_prj:
             p.update(dt)
-        self.collison()
+        self.collison(dt)
         self.player_prj = [p for p in self.player_prj if p.alive]
         self.alien_prj = [p for p in self.alien_prj if p.alive]
 
     def notify(self, event: Event) -> None:
         if event.id == EventID.SHOT_FIRED:
-            self.alien_prj.append(self.alien_fleet.fleet[event.data[0]].shoot())
-        elif event.id == EventID.FLEET_COLLISION:
-            self.alien_fleet.collision()
+            if event.data[0] == self.turret:
+                prj = event.data[0].shoot()
+                if prj:
+                    self.player_prj.append(prj)
+            else:
+                self.alien_prj.append(event.data[0].shoot())
+        if event.id == EventID.LOSE:
+            events_proxy.emitte(Event(EventID.MENU_STATE, []))
 
     def handle_input(self) -> None:
         for event in pygame.event.get():
@@ -77,9 +82,7 @@ class Play(State):
         if not keys[pygame.K_a] and not keys[pygame.K_d]:
             self.turret.stop()
         if keys[pygame.K_SPACE]:
-            prj = self.turret.shoot()
-            if prj:
-                self.player_prj.append(prj)
+            events_proxy.emitte(Event(EventID.SHOT_FIRED, [self.turret]))
 
     def draw(self, surface: pygame.Surface) -> None:
         surface.blit(self.bg, (0, 0))
@@ -93,29 +96,28 @@ class Play(State):
         for shield in self.shields:
             shield.draw(surface)
 
-    def collison(self) -> None:
-        border = 1
-        prj_hit = 2
-
+    def collison(self, dt: float) -> None:
         if (
             self.turret.pos[0] < 0
             or self.turret.pos[0] > self.win_size[0] - self.turret.scale[0]
         ):
-            self.turret.collision(border)
+            events_proxy.emitte(Event(EventID.BORDER_COLLISON, [dt]))
 
         for prj in self.alien_prj:
             if not prj.alive:
                 continue
             if prj.box.colliderect(self.turret.box):
-                self.turret.collision(prj_hit)
+                events_proxy.emitte(Event(EventID.HIT, []))
                 prj.kill()
             for shield in self.shields:
                 if prj.box.colliderect(shield.box):
                     prj.kill()
                     shield.hit()
         for ship in self.alien_fleet.fleet:
+            if ship.pos[1] >= self.win_size[1] // 5:
+                events_proxy.emitte(Event(EventID.LOSE, []))
             if ship.pos[0] < 0 or ship.pos[0] > self.win_size[0] - ship.scale[0]:
-                events_proxy.emitte(Event(EventID.FLEET_COLLISION, []))
+                events_proxy.emitte(Event(EventID.FLEET_COLLISION, [dt]))
                 break
 
         for prj in self.player_prj:

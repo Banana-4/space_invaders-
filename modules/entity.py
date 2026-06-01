@@ -20,8 +20,6 @@ class Entity:
         pass
 
     def draw(self, surface: pygame.Surface) -> None:
-        self.box.x = int(self.pos[0])
-        self.box.y = int(self.pos[1])
         surface.blit(self.sprite, self.box)
 
 
@@ -63,10 +61,14 @@ class Turret(Entity):
         self.p_speed = -2 * self.velocity
         self.cd = 0
         self.hp = 3
+        events_proxy.register(self, [EventID.BORDER_COLLISON, EventID.HIT])
 
     def update(self, dt: float) -> None:
         self.pos[0] += self.speed * dt
         self.cd -= dt
+        self.box.x = int(self.pos[0])
+        if self.hp == 0:
+            events_proxy.emitte(Event(EventID.MENU_STATE, []))
 
     def move(self, left: bool = False) -> None:
         self.speed = (-1 * self.velocity) if left else self.velocity
@@ -74,10 +76,11 @@ class Turret(Entity):
     def stop(self) -> None:
         self.speed = 0
 
-    def collision(self, type: int) -> None:
-        if type == 1:
-            self.pos[0] = self.box.x
-        if type == 2:
+    def notify(self, event: Event):
+        if event.id == EventID.BORDER_COLLISON:
+            self.pos[0] -= event.data[0] * self.speed
+            self.box.x = int(self.pos[0])
+        if event.id == EventID.HIT:
             self.hp -= 1
 
     def shoot(self):
@@ -99,7 +102,6 @@ class SpaceShip(Entity):
         pos: tuple[float, float],
         speed: list[float],
         fire_chance: float,
-        id: int,
     ) -> None:
         super().__init__(sprite, scale, pos)
         self.speed = speed
@@ -107,26 +109,28 @@ class SpaceShip(Entity):
         self.hp = 1
         self.change_course = False
         self.next_row = 0
-        self.id = id
 
-    def change_direction(self) -> None:
-        self.next_row = 3
+    def change_direction(self, dt: float) -> None:
+        self.next_row = 5
         self.change_course = not self.change_course
-        self.pos[0] = self.box.x
+        self.pos[0] -= self.speed[0] * dt
+        self.box.x = int(self.pos[0])
         self.speed[0] *= -1
 
     def update(self, dt: float) -> None:
         if self.change_course:
             if self.next_row > 0:
                 self.pos[1] += self.speed[1] * dt
+                self.box.y = int(self.pos[1])
                 self.next_row -= self.speed[1] * dt
             else:
                 self.change_course = False
         else:
             self.pos[0] += self.speed[0] * dt
+            self.box.x = int(self.pos[0])
         num = random.random()
         if num <= self.fire_chance:
-            events_proxy.emitte(Event(EventID.SHOT_FIRED, [self.id]))
+            events_proxy.emitte(Event(EventID.SHOT_FIRED, [self]))
 
     def hit(self) -> None:
         self.hp -= 1
@@ -175,11 +179,12 @@ class Fleet:
             // self.rows,
         )
         self.create_fleet()
+        events_proxy.register(self, [EventID.FLEET_COLLISION])
 
     def create_fleet(self) -> None:
         start_x = self.gap_x
         y = self.gap_y + self.top
-        for id in range(self.rows):
+        for _ in range(self.rows):
             x = start_x
             for _ in range(self.columns):
                 self.fleet.append(
@@ -189,15 +194,15 @@ class Fleet:
                         (x, y),
                         self.speed.copy(),
                         self.fire_chance,
-                        id,
                     )
                 )
                 x += self.sprite_scale[0] + self.gap_x
             y += self.sprite_scale[1] + self.gap_y
 
-    def collision(self):
-        for ship in self.fleet:
-            ship.change_direction()
+    def notify(self, event: Event) -> None:
+        if event.id == EventID.FLEET_COLLISION:
+            for ship in self.fleet:
+                ship.change_direction(event.data[0])
 
     def update(self, dt: float) -> None:
         self.fleet = [ship for ship in self.fleet if ship.hp != 0]
@@ -221,3 +226,6 @@ class Shield(Entity):
 
     def update(self, dt: float) -> None:
         pass
+
+    def draw(self, surface: pygame.Surface) -> None:
+        super().draw(surface)
