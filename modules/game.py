@@ -1,6 +1,7 @@
 import pygame
 
 from modules.events import Event, EventID, events_proxy
+from modules.highscore import Highscores
 from modules.main_menu import MainMenu
 from modules.play import Play
 from modules.state_interface import State
@@ -45,7 +46,7 @@ class Game:
         elif event.id == EventID.PLAY_STATE:
             self.state = Play(self.win_size, self.fps)
         elif event.id == EventID.HIGHSCHORE_STATE:
-            pass
+            self.state = Highscores(self.win_size)
         elif event.id == EventID.MENU_STATE:
             self.state = MainMenu([], self.win_size)
 
