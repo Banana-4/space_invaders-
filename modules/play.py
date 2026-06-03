@@ -73,7 +73,7 @@ class Play(State):
                 events_proxy.emitte(Event(EventID.QUIT_GAME, []))
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    events_proxy.emitte(Event(EventID.QUIT_GAME, []))
+                    events_proxy.emitte(Event(EventID.PAUSE_STATE, []))
         keys = pygame.key.get_pressed()
         if keys[pygame.K_a]:
             self.turret.move(True)
@@ -85,6 +85,7 @@ class Play(State):
             events_proxy.emitte(Event(EventID.SHOT_FIRED, [self.turret]))
 
     def draw(self, surface: pygame.Surface) -> None:
+        surface.fill("black")
         surface.blit(self.bg, (0, 0))
         self.turret.draw(surface)
         for p in self.alien_prj:

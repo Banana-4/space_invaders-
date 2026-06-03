@@ -1,5 +1,7 @@
 import csv
+import heapq
 import os
+from asyncio.unix_events import SelectorEventLoop
 
 import pygame
 
@@ -10,13 +12,19 @@ from modules.state_interface import State
 class Highscores(State):
     def __init__(self, win_size) -> None:
         self.win_size = win_size
-        self.csv_file = os.path.join("data", "scores")
-        self.scores: list[str] = []
+        self.csv_file = os.path.join("data", "scores.csv")
+        self.scores = []
         try:
+            heap = []
             with open(self.csv_file, mode="r") as file:
                 reader = csv.DictReader(file)
                 for row in reader:
-                    self.scores.append(f"{row['name']}  {row['score']}  {row['date']}")
+                    heapq.heappush(heap, (-int(row["score"]), row["name"], row["date"]))
+            place = 1
+            while heap:
+                scores, name, date = heapq.heappop(heap)
+                self.scores.append(f"{place}. {-scores} {name} {date}")
+                place += 1
         except FileNotFoundError:
             events_proxy.emitte(Event(EventID.MENU_STATE, []))
         self.font = pygame.font.Font(None, 32)
@@ -31,6 +39,7 @@ class Highscores(State):
         return super().update(dt)
 
     def draw(self, surface: pygame.Surface) -> None:
+        surface.fill("black")
         surface.blit(self.bg, (0, 0))
         y = 50
         x = self.win_size[0] // 2 - 100

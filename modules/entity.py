@@ -189,7 +189,7 @@ class Fleet:
             for _ in range(self.columns):
                 self.fleet.append(
                     SpaceShip(
-                        "spaceship.jpg",
+                        "spaceship.png",
                         self.sprite_scale,
                         (x, y),
                         self.speed.copy(),
