@@ -66,8 +66,8 @@ class Game:
         elif event.id == EventID.RESTART:
             old_state = self.active_states.pop()
             self.state = Play(self.win_size, self.fps)
-            if old_state:
-                events_proxy.unregister(old_state)
+        if old_state:
+            events_proxy.unregister(old_state)
 
     def handle_input(self) -> None:
         self.state.handle_input()
