@@ -64,8 +64,6 @@ class Play(State):
                     self.player_prj.append(prj)
             else:
                 self.alien_prj.append(event.data[0].shoot())
-        if event.id == EventID.LOSE:
-            events_proxy.emitte(Event(EventID.MENU_STATE, []))
 
     def handle_input(self) -> None:
         for event in pygame.event.get():
@@ -115,7 +113,7 @@ class Play(State):
                     prj.kill()
                     shield.hit()
         for ship in self.alien_fleet.fleet:
-            if ship.pos[1] >= self.win_size[1] // 5:
+            if ship.pos[1] >= self.win_size[1] - self.win_size[1] // 5:
                 events_proxy.emitte(Event(EventID.LOSE, []))
             if ship.pos[0] < 0 or ship.pos[0] > self.win_size[0] - ship.scale[0]:
                 events_proxy.emitte(Event(EventID.FLEET_COLLISION, [dt]))

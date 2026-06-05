@@ -68,7 +68,7 @@ class Turret(Entity):
         self.cd -= dt
         self.box.x = int(self.pos[0])
         if self.hp == 0:
-            events_proxy.emitte(Event(EventID.MENU_STATE, []))
+            events_proxy.emitte(Event(EventID.LOSE, []))
 
     def move(self, left: bool = False) -> None:
         self.speed = (-1 * self.velocity) if left else self.velocity
@@ -206,6 +206,8 @@ class Fleet:
 
     def update(self, dt: float) -> None:
         self.fleet = [ship for ship in self.fleet if ship.hp != 0]
+        if len(self.fleet) == 0:
+            events_proxy.emitte(Event(EventID.WIN, []))
         for ship in self.fleet:
             ship.update(dt)
 

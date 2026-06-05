@@ -1,5 +1,6 @@
 import pygame
 
+from modules.end_game import EndGame
 from modules.events import Event, EventID, events_proxy
 from modules.highscore import Highscores
 from modules.main_menu import MainMenu
@@ -30,6 +31,8 @@ class Game:
                 EventID.PAUSE_STATE,
                 EventID.RESUME,
                 EventID.RESTART,
+                EventID.WIN,
+                EventID.LOSE,
             ],
         )
 
@@ -46,17 +49,14 @@ class Game:
         self.state.update(dt)
 
     def notify(self, event: Event) -> None:
-        old_state = None
+        old_state = self.state
         if event.id == EventID.QUIT_GAME:
             self.run = False
         elif event.id == EventID.PLAY_STATE:
-            old_state = self.state
             self.state = Play(self.win_size, self.fps)
         elif event.id == EventID.HIGHSCORE_STATE:
-            old_state = self.state
             self.state = Highscores(self.win_size)
         elif event.id == EventID.MENU_STATE:
-            old_state = self.state
             self.state = MainMenu([], self.win_size)
         elif event.id == EventID.PAUSE_STATE:
             self.active_states.append(self.state)
@@ -66,7 +66,11 @@ class Game:
         elif event.id == EventID.RESTART:
             old_state = self.active_states.pop()
             self.state = Play(self.win_size, self.fps)
-        if old_state:
+        elif event.id == EventID.WIN:
+            self.state = EndGame(self.win_size, True)
+        elif event.id == EventID.LOSE:
+            self.state = EndGame(self.win_size, False)
+        if old_state != self.state:
             events_proxy.unregister(old_state)
 
     def handle_input(self) -> None:
