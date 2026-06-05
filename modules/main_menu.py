@@ -4,6 +4,7 @@ from typing import Callable
 import pygame
 
 from modules.events import Event, EventID, events_proxy
+from modules.menu import Menu
 from modules.menu_item import MenuItem
 from modules.state_interface import State
 
@@ -14,67 +15,53 @@ class MainMenu(State):
         items: list[tuple[str, Callable[[], None]]],
         win_size: tuple[int, int] = (640, 400),
     ):
-        self.marg_y_xl = 70
-        self.marg_y = 38
-        self.font_sizeXL = 48
-        self.font_size = 32
-        self.font_fam = None
-        self.text_col = (180, 240, 255)
-        self.active_color = (255, 220, 80)
+        self.style = {
+            "font fam": None,
+            "font size": 32,
+            "color": (180, 240, 255),
+            "active color": (255, 220, 80),
+        }
+        self.layout = {"padding": 16, "margin y": 50, "align": "lef"}
         self.win_size = win_size
-        self.focused = 0
-        self.focus_move = 0
-        # test items list
+        self.menu_size = (self.win_size[0] // 3, self.win_size[1] // 3)
+        self.menu_pos = (
+            self.win_size[0] - self.win_size[0] // 3,
+            self.win_size[1] - 500,
+        )
+        # items list
         items = [
             ("Play", lambda: events_proxy.emitte(Event(EventID.PLAY_STATE, []))),
             (
                 "Highscore",
-                lambda: events_proxy.emitte(Event(EventID.HIGHSCHORE_STATE, [])),
+                lambda: events_proxy.emitte(Event(EventID.HIGHSCORE_STATE, [])),
             ),
             ("Quit", lambda: events_proxy.emitte(Event(EventID.QUIT_GAME, []))),
         ]
-        self.menu_items = self.gen_menu_items(items)
+        self.menu = Menu(
+            self.menu_pos,
+            self.menu_size,
+            "transperent",
+            None,
+            items,
+            self.style,
+            self.layout,
+        )
         self.bg = pygame.image.load(os.path.join("assets", "banner.png"))
         self.bg = pygame.transform.scale(self.bg, self.win_size)
 
     def update(self, dt: float) -> None:
-        self.menu_items[self.focused].toggle_focus()
-        self.focused = (self.focused + self.focus_move) % len(self.menu_items)
-        self.focus_move = 0
-        self.menu_items[self.focused].toggle_focus()
+        self.menu.update(dt)
 
     def handle_input(self) -> None:
         for event in pygame.event.get():
-            if event.type == pygame.KEYDOWN:
+            if event.type == pygame.QUIT:
+                events_proxy.emitte(Event(EventID.QUIT_GAME, []))
+            elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     events_proxy.emitte(Event(EventID.QUIT_GAME, []))
-                elif event.key == pygame.K_UP:
-                    self.focus_move = -1
-                elif event.key == pygame.K_DOWN:
-                    self.focus_move = 1
-                elif event.key == pygame.K_RETURN:
-                    self.menu_items[self.focused].exec()
+            self.menu.handle_input(event)
 
     def draw(self, surface: pygame.Surface) -> None:
+        surface.fill("black")
         surface.blit(self.bg, (0, 0))
-        for item in self.menu_items:
-            item.draw(surface)
-
-    def gen_menu_items(self, items: list[tuple[str, Callable[[], None]]]):
-        x, y = self.win_size[0] - self.win_size[0] // 5, self.win_size[1] // 2
-        menu_items = []
-        for name, callback in items:
-            menu_items.append(
-                MenuItem(
-                    name,
-                    callback,
-                    (x, y),
-                    self.text_col,
-                    self.active_color,
-                    self.font_fam,
-                    self.font_size,
-                )
-            )
-            y += self.marg_y
-            menu_items[0].toggle_focus()
-        return menu_items
+        self.menu.draw(surface)
