@@ -101,14 +101,14 @@ class SpaceShip(Entity):
         scale: tuple[int, int],
         pos: tuple[float, float],
         speed: list[float],
-        fire_chance: float,
+        points: int,
     ) -> None:
         super().__init__(sprite, scale, pos)
         self.speed = speed
-        self.fire_chance = fire_chance
         self.hp = 1
         self.change_course = False
         self.next_row = 0
+        self.points = points
 
     def change_direction(self, dt: float) -> None:
         self.next_row = 5
@@ -128,9 +128,6 @@ class SpaceShip(Entity):
         else:
             self.pos[0] += self.speed[0] * dt
             self.box.x = int(self.pos[0])
-        num = random.random()
-        if num <= self.fire_chance:
-            events_proxy.emitte(Event(EventID.SHOT_FIRED, [self]))
 
     def hit(self) -> None:
         self.hp -= 1
@@ -175,45 +172,58 @@ class Fleet:
         self.sprite_scale = (
             (self.fleet_box.width - 2 * self.gap_x - self.gap_x * self.columns)
             // self.columns,
-            (self.fleet_box.height - self.gap_y * self.rows - 2 * self.gap_y)
-            // self.rows,
+            (self.fleet_box.height - 2 * self.gap_y) // self.rows,
         )
         self.create_fleet()
         events_proxy.register(self, [EventID.FLEET_COLLISION])
 
-    def create_fleet(self) -> None:
-        start_x = self.gap_x
-        y = self.gap_y + self.top
-        for _ in range(self.rows):
-            x = start_x
-            for _ in range(self.columns):
-                self.fleet.append(
-                    SpaceShip(
-                        "spaceship.png",
-                        self.sprite_scale,
-                        (x, y),
-                        self.speed.copy(),
-                        self.fire_chance,
-                    )
+    def create_spaceship_line(self, y: int, sprite_name: str, points: int):
+        x = self.gap_x
+        line = []
+        for _ in range(self.columns):
+            line.append(
+                SpaceShip(
+                    sprite_name,
+                    self.sprite_scale,
+                    (x, y),
+                    self.speed.copy(),
+                    points,
                 )
-                x += self.sprite_scale[0] + self.gap_x
-            y += self.sprite_scale[1] + self.gap_y
+            )
+            x += self.sprite_scale[0] + self.gap_x
+        return line
+
+    def create_fleet(self) -> None:
+        y = self.gap_y + self.top
+        self.fleet.append(self.create_spaceship_line(y, "spaceship.png", 30))
+        y += self.sprite_scale[1] + 5
+        self.fleet.append(self.create_spaceship_line(y, "spaceship.png", 20))
+        y += self.sprite_scale[1] + 5
+        self.fleet.append(self.create_spaceship_line(y, "spaceship.png", 20))
+        y += self.sprite_scale[1] + 5
+        self.fleet.append(self.create_spaceship_line(y, "spaceship.png", 10))
+        y += self.sprite_scale[1] + 5
+        self.fleet.append(self.create_spaceship_line(y, "spaceship.png", 10))
 
     def notify(self, event: Event) -> None:
         if event.id == EventID.FLEET_COLLISION:
-            for ship in self.fleet:
-                ship.change_direction(event.data[0])
+            for line in self.fleet:
+                for ship in line:
+                    ship.change_direction(event.data[0])
 
     def update(self, dt: float) -> None:
-        self.fleet = [ship for ship in self.fleet if ship.hp != 0]
+        for line in self.fleet:
+            line = [ship for ship in line if ship.hp != 0]
         if len(self.fleet) == 0:
             events_proxy.emitte(Event(EventID.WIN, []))
-        for ship in self.fleet:
-            ship.update(dt)
+        for line in self.fleet:
+            for ship in line:
+                ship.update(dt)
 
     def draw(self, surface: pygame.Surface) -> None:
-        for ship in self.fleet:
-            ship.draw(surface)
+        for line in self.fleet:
+            for ship in line:
+                ship.draw(surface)
 
 
 class Shield(Entity):

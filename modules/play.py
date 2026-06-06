@@ -112,21 +112,23 @@ class Play(State):
                 if prj.box.colliderect(shield.box):
                     prj.kill()
                     shield.hit()
-        for ship in self.alien_fleet.fleet:
-            if ship.pos[1] >= self.win_size[1] - self.win_size[1] // 5:
-                events_proxy.emitte(Event(EventID.LOSE, []))
-            if ship.pos[0] < 0 or ship.pos[0] > self.win_size[0] - ship.scale[0]:
-                events_proxy.emitte(Event(EventID.FLEET_COLLISION, [dt]))
-                break
+        for line in self.alien_fleet.fleet:
+            for ship in line:
+                if ship.pos[1] >= self.win_size[1] - self.win_size[1] // 5:
+                    events_proxy.emitte(Event(EventID.LOSE, []))
+                if ship.pos[0] < 0 or ship.pos[0] > self.win_size[0] - ship.scale[0]:
+                    events_proxy.emitte(Event(EventID.FLEET_COLLISION, [dt]))
+                    break
 
         for prj in self.player_prj:
-            for ship in self.alien_fleet.fleet:
-                if not prj.alive:
-                    continue
-                if prj.box.colliderect(ship.box):
-                    prj.kill()
-                    ship.hit()
-                    self.score += 10
+            for line in self.alien_fleet.fleet:
+                for ship in line:
+                    if not prj.alive:
+                        continue
+                    if prj.box.colliderect(ship.box):
+                        prj.kill()
+                        ship.hit()
+                        self.score += ship.points
             for shield in self.shields:
                 if prj.box.colliderect(shield.box):
                     prj.kill()
