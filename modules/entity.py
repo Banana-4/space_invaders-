@@ -195,15 +195,15 @@ class Fleet:
 
     def create_fleet(self) -> None:
         y = self.gap_y + self.top
-        self.fleet.append(self.create_spaceship_line(y, "spaceship.png", 30))
+        self.fleet.append(self.create_spaceship_line(y, "top_ship.png", 30))
         y += self.sprite_scale[1] + 5
-        self.fleet.append(self.create_spaceship_line(y, "spaceship.png", 20))
+        self.fleet.append(self.create_spaceship_line(y, "mid_ship.png", 20))
         y += self.sprite_scale[1] + 5
-        self.fleet.append(self.create_spaceship_line(y, "spaceship.png", 20))
+        self.fleet.append(self.create_spaceship_line(y, "mid_ship.png", 20))
         y += self.sprite_scale[1] + 5
-        self.fleet.append(self.create_spaceship_line(y, "spaceship.png", 10))
+        self.fleet.append(self.create_spaceship_line(y, "bot_ship.png", 10))
         y += self.sprite_scale[1] + 5
-        self.fleet.append(self.create_spaceship_line(y, "spaceship.png", 10))
+        self.fleet.append(self.create_spaceship_line(y, "bot_ship.png", 10))
 
     def notify(self, event: Event) -> None:
         if event.id == EventID.FLEET_COLLISION:
@@ -212,13 +212,23 @@ class Fleet:
                     ship.change_direction(event.data[0])
 
     def update(self, dt: float) -> None:
-        for line in self.fleet:
-            line = [ship for ship in line if ship.hp != 0]
         if len(self.fleet) == 0:
             events_proxy.emitte(Event(EventID.WIN, []))
         for line in self.fleet:
             for ship in line:
                 ship.update(dt)
+        num = random.random()
+        if num <= self.fire_chance:
+            selected = random.choice(self.fleet[-1])
+            events_proxy.emitte(Event(EventID.SHOT_FIRED, [selected]))
+
+    def clean(self) -> None:
+        tmp_fleet = []
+        for line in self.fleet:
+            row = [ship for ship in line if ship.hp > 0]
+            if row:
+                tmp_fleet.append(row)
+        self.fleet = tmp_fleet
 
     def draw(self, surface: pygame.Surface) -> None:
         for line in self.fleet:

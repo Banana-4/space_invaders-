@@ -35,7 +35,7 @@ class Play(State):
             5,
             8,
             [35, 30],
-            0.005 / self.fps,
+            0.1 / self.fps,
         )
         events_proxy.register(self, [EventID.FLEET_COLLISION, EventID.SHOT_FIRED])
         self.shields = [
@@ -45,7 +45,13 @@ class Play(State):
             Shield("shield.png", (100, 100), (600, 4 * self.win_size[1] // 5)),
         ]
 
+    def clean(self) -> None:
+        self.player_prj = [p for p in self.player_prj if p.alive]
+        self.alien_prj = [p for p in self.alien_prj if p.alive]
+        self.alien_fleet.clean()
+
     def update(self, dt: float) -> None:
+        self.clean()
         self.turret.update(dt)
         self.alien_fleet.update(dt)
         for p in self.player_prj:
@@ -53,8 +59,6 @@ class Play(State):
         for p in self.alien_prj:
             p.update(dt)
         self.collison(dt)
-        self.player_prj = [p for p in self.player_prj if p.alive]
-        self.alien_prj = [p for p in self.alien_prj if p.alive]
 
     def notify(self, event: Event) -> None:
         if event.id == EventID.SHOT_FIRED:
