@@ -16,6 +16,7 @@ class EventID(Enum):
     RESUME = 11
     RESTART = 12
     SPEED_UP = 13
+    FLEET_COLLISION = 14
 
 
 class Event:

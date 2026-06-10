@@ -104,7 +104,18 @@ class Play(State):
             self.turret.pos[0] < 0
             or self.turret.pos[0] > self.win_size[0] - self.turret.scale[0]
         ):
-            events_proxy.emitte(Event(EventID.BORDER_COLLISON, [dt]))
+            events_proxy.emitte(
+                Event(
+                    EventID.BORDER_COLLISON,
+                    [
+                        -self.turret.pos[0]
+                        if self.turret.pos[0] < 0
+                        else -(
+                            self.turret.pos[0] - self.win_size[0] + self.turret.scale[0]
+                        )
+                    ],
+                )
+            )
 
         for prj in self.alien_prj:
             if not prj.alive:
@@ -121,13 +132,13 @@ class Play(State):
                 if ship.pos[1] >= self.win_size[1] - self.win_size[1] // 5:
                     events_proxy.emitte(Event(EventID.LOSE, []))
                 if ship.pos[0] < 0:
-                    delta = -ship.pos[0]
-                    events_proxy.emitte(Event(EventID.BORDER_COLLISON, [delta]))
+                    events_proxy.emitte(Event(EventID.FLEET_COLLISION, [-ship.pos[0]]))
+                    print(f"X: {ship.pos[0]}")
                     break
                 if ship.pos[0] > self.win_size[0] - ship.scale[0]:
                     events_proxy.emitte(
                         Event(
-                            EventID.BORDER_COLLISON,
+                            EventID.FLEET_COLLISION,
                             [-(ship.pos[0] - self.win_size[0] + ship.scale[0])],
                         )
                     )
