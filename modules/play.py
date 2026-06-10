@@ -34,10 +34,10 @@ class Play(State):
             self.topbar.height,
             5,
             8,
-            [35, 30],
+            [40, 40],
             0.1 / self.fps,
         )
-        events_proxy.register(self, [EventID.FLEET_COLLISION, EventID.SHOT_FIRED])
+        events_proxy.register(self, [EventID.SHOT_FIRED])
         self.shields = [
             Shield("shield.png", (100, 100), (0, 4 * self.win_size[1] // 5)),
             Shield("shield.png", (100, 100), (200, 4 * self.win_size[1] // 5)),
@@ -120,8 +120,17 @@ class Play(State):
             for ship in line:
                 if ship.pos[1] >= self.win_size[1] - self.win_size[1] // 5:
                     events_proxy.emitte(Event(EventID.LOSE, []))
-                if ship.pos[0] < 0 or ship.pos[0] > self.win_size[0] - ship.scale[0]:
-                    events_proxy.emitte(Event(EventID.FLEET_COLLISION, [dt]))
+                if ship.pos[0] < 0:
+                    delta = -ship.pos[0]
+                    events_proxy.emitte(Event(EventID.BORDER_COLLISON, [delta]))
+                    break
+                if ship.pos[0] > self.win_size[0] - ship.scale[0]:
+                    events_proxy.emitte(
+                        Event(
+                            EventID.BORDER_COLLISON,
+                            [-(ship.pos[0] - self.win_size[0] + ship.scale[0])],
+                        )
+                    )
                     break
 
         for prj in self.player_prj:

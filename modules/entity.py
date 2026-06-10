@@ -20,6 +20,8 @@ class Entity:
         pass
 
     def draw(self, surface: pygame.Surface) -> None:
+        self.box.y = int(self.pos[1])
+        self.box.x = int(self.pos[0])
         surface.blit(self.sprite, self.box)
 
 
@@ -58,7 +60,7 @@ class Turret(Entity):
         self.velocity = velocity
         self.fire_rate = fire_rate
         self.speed = 0
-        self.p_speed = -2 * self.velocity
+        self.p_speed = -5 * self.velocity
         self.cd = 0
         self.hp = 3
         events_proxy.register(self, [EventID.BORDER_COLLISON, EventID.HIT])
@@ -109,30 +111,36 @@ class SpaceShip(Entity):
         self.change_course = False
         self.next_row = 0
         self.points = points
+        self.boost = 0.5
+        events_proxy.register(self, [EventID.SPEED_UP])
 
-    def change_direction(self, dt: float) -> None:
-        self.next_row = 5
+    def notify(self, event: Event) -> None:
+        if event.id == EventID.SPEED_UP:
+            self.speed[0] += event.data[0] if self.speed[0] > 0 else -event.data[0]
+            self.speed[1] += event.data[0]
+
+    def change_direction(self, pos: float) -> None:
+        self.next_row = 10
         self.change_course = not self.change_course
-        self.pos[0] -= self.speed[0] * dt
-        self.box.x = int(self.pos[0])
         self.speed[0] *= -1
+        self.pos[0] += pos
 
     def update(self, dt: float) -> None:
         if self.change_course:
             if self.next_row > 0:
                 self.pos[1] += self.speed[1] * dt
-                self.box.y = int(self.pos[1])
                 self.next_row -= self.speed[1] * dt
             else:
                 self.change_course = False
         else:
             self.pos[0] += self.speed[0] * dt
-            self.box.x = int(self.pos[0])
 
     def hit(self) -> None:
         self.hp -= 1
+        events_proxy.emitte(Event(EventID.SPEED_UP, [self.boost]))
 
     def kill(self):
+
         # add explosion on death
         pass
 
@@ -175,7 +183,7 @@ class Fleet:
             (self.fleet_box.height - 2 * self.gap_y) // self.rows,
         )
         self.create_fleet()
-        events_proxy.register(self, [EventID.FLEET_COLLISION])
+        events_proxy.register(self, [EventID.BORDER_COLLISON])
 
     def create_spaceship_line(self, y: int, sprite_name: str, points: int):
         x = self.gap_x
@@ -206,7 +214,7 @@ class Fleet:
         self.fleet.append(self.create_spaceship_line(y, "bot_ship.png", 10))
 
     def notify(self, event: Event) -> None:
-        if event.id == EventID.FLEET_COLLISION:
+        if event.id == EventID.BORDER_COLLISON:
             for line in self.fleet:
                 for ship in line:
                     ship.change_direction(event.data[0])

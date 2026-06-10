@@ -11,11 +11,11 @@ class EventID(Enum):
     LOSE = 6
     WIN = 7
     SHOT_FIRED = 8
-    FLEET_COLLISION = 9
-    HIT = 10
-    BORDER_COLLISON = 11
-    RESUME = 12
-    RESTART = 13
+    HIT = 9
+    BORDER_COLLISON = 10
+    RESUME = 11
+    RESTART = 12
+    SPEED_UP = 13
 
 
 class Event:
