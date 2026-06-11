@@ -122,16 +122,15 @@ class SpaceShip(Entity):
             self.speed[1] += event.data[0]
 
     def change_direction(self, pos: float) -> None:
-        self.next_row = 10
+        self.next_row = self.pos[1] + 10
         self.change_course = not self.change_course
         self.speed[0] *= -1
-        self.pos[0] = int(self.pos[0] + pos)
+        self.pos[0] -= pos
 
     def update(self, dt: float) -> None:
         if self.change_course:
-            if self.next_row > 0:
+            if self.next_row > self.pos[1]:
                 self.pos[1] += self.speed[1] * dt
-                self.next_row -= self.speed[1] * dt
             else:
                 self.change_course = False
         else:
@@ -217,9 +216,16 @@ class Fleet:
 
     def notify(self, event: Event) -> None:
         if event.id == EventID.FLEET_COLLISION:
+            pos = self.fleet[0][0].pos[0]
+            if event.data[0] > 0:
+                pos = (
+                    self.fleet[0][len(self.fleet[0]) - 1].pos[0]
+                    + self.sprite_scale[0]
+                    - event.data[0]
+                )
             for line in self.fleet:
                 for ship in line:
-                    ship.change_direction(event.data[0])
+                    ship.change_direction(pos)
 
     def update(self, dt: float) -> None:
         if len(self.fleet) == 0:

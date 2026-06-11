@@ -127,23 +127,28 @@ class Play(State):
                 if prj.box.colliderect(shield.box):
                     prj.kill()
                     shield.hit()
+        collision = False
         for line in self.alien_fleet.fleet:
             for ship in line:
                 if ship.pos[1] >= self.win_size[1] - self.win_size[1] // 5:
                     events_proxy.emitte(Event(EventID.LOSE, []))
+                    collision = True
+                    break
                 if ship.pos[0] < 0:
-                    events_proxy.emitte(Event(EventID.FLEET_COLLISION, [-ship.pos[0]]))
-                    print(f"X: {ship.pos[0]}")
+                    events_proxy.emitte(Event(EventID.FLEET_COLLISION, [0]))
+                    collision = True
                     break
                 if ship.pos[0] > self.win_size[0] - ship.scale[0]:
                     events_proxy.emitte(
                         Event(
                             EventID.FLEET_COLLISION,
-                            [-(ship.pos[0] - self.win_size[0] + ship.scale[0])],
+                            [self.win_size[0]],
                         )
                     )
+                    collision = True
                     break
-
+            if collision:
+                break
         for prj in self.player_prj:
             for line in self.alien_fleet.fleet:
                 for ship in line:
