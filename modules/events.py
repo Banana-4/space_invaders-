@@ -8,15 +8,14 @@ class EventID(Enum):
     PLAY_STATE = 3
     PAUSE_STATE = 4
     HIGHSCORE_STATE = 5
-    LOSE = 6
-    WIN = 7
-    SHOT_FIRED = 8
-    HIT = 9
-    BORDER_COLLISON = 10
-    RESUME = 11
-    RESTART = 12
-    SPEED_UP = 13
-    FLEET_COLLISION = 14
+    END = 6
+    SHOT_FIRED = 7
+    HIT = 8
+    BORDER_COLLISON = 9
+    RESUME = 10
+    RESTART = 11
+    SPEED_UP = 12
+    FLEET_COLLISION = 13
 
 
 class Event:

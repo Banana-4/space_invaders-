@@ -70,7 +70,7 @@ class Turret(Entity):
         self.cd -= dt
         self.box.x = int(self.pos[0])
         if self.hp == 0:
-            events_proxy.emitte(Event(EventID.LOSE, []))
+            events_proxy.emitte(Event(EventID.END, []))
 
     def move(self, left: bool = False) -> None:
         self.speed = (-1 * self.velocity) if left else self.velocity
@@ -177,13 +177,14 @@ class Fleet:
         self.columns = columns
         self.fleet_box = pygame.Rect(0, self.top, fleet_size[0], fleet_size[1])
         self.speed = speed
+        self.y = self.gap_y + self.top
         self.fleet = []
         self.sprite_scale = (
             (self.fleet_box.width - 2 * self.gap_x - self.gap_x * self.columns)
             // self.columns,
             (self.fleet_box.height - 2 * self.gap_y) // self.rows,
         )
-        self.create_fleet()
+        self.create_fleet(self.y)
         events_proxy.register(self, [EventID.FLEET_COLLISION])
 
     def create_spaceship_line(self, y: int, sprite_name: str, points: int):
@@ -202,8 +203,7 @@ class Fleet:
             x += self.sprite_scale[0] + self.gap_x
         return line
 
-    def create_fleet(self) -> None:
-        y = self.gap_y + self.top
+    def create_fleet(self, y: int) -> None:
         self.fleet.append(self.create_spaceship_line(y, "top_ship.png", 30))
         y += self.sprite_scale[1] + 5
         self.fleet.append(self.create_spaceship_line(y, "mid_ship.png", 20))
@@ -227,9 +227,13 @@ class Fleet:
                 for ship in line:
                     ship.change_direction(pos)
 
-    def update(self, dt: float) -> None:
+    def new_fleet(self) -> None:
         if len(self.fleet) == 0:
-            events_proxy.emitte(Event(EventID.WIN, []))
+            if self.y < 80:
+                self.y += 10
+            self.create_fleet(self.y)
+
+    def update(self, dt: float) -> None:
         for line in self.fleet:
             for ship in line:
                 ship.update(dt)
@@ -245,6 +249,8 @@ class Fleet:
             if row:
                 tmp_fleet.append(row)
         self.fleet = tmp_fleet
+        if len(self.fleet) == 0:
+            self.new_fleet()
 
     def draw(self, surface: pygame.Surface) -> None:
         for line in self.fleet:
@@ -252,18 +258,67 @@ class Fleet:
                 ship.draw(surface)
 
 
-class Shield(Entity):
+class ShieldPiece:
     def __init__(
-        self, sprite: str, scale: tuple[int, int], pos: tuple[float, float]
+        self, color: str | tuple[int, int, int], pos: tuple[float, float]
     ) -> None:
-        super().__init__(sprite, scale, pos)
-        self.hp = 5
+        self.color = color
+        self.hp = 1
+        self.side = 4
+        self.box = pygame.Rect(pos[0], pos[1], self.side, self.side)
 
     def hit(self) -> None:
         self.hp -= 1
 
+    def draw(self, surface: pygame.Surface) -> None:
+        pygame.draw.rect(surface, self.color, self.box)
+
+
+class Shield:
+    def __init__(self, pos: tuple[int, int]) -> None:
+        self.pos = pos
+        self.color = "green"
+        self.side = 4
+        self.width = self.side * 20
+        self.grid = [
+            [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0],  # Row 0
+            [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0],  # Row 1
+            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],  # Row 2
+            [0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0],  # Row 3
+            [0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0],  # Row 4
+            [0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0],  # Row 5
+            [0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0],  # Row 6
+        ]
+
+        self.create_shield()
+
+    def create_shield(self) -> None:
+        rows = len(self.grid)
+        columns = len(self.grid[0])
+        shield = []
+        for i in range(rows):
+            row = []
+            for j in range(columns):
+                if self.grid[i][j] == 1:
+                    row.append(
+                        ShieldPiece(
+                            self.color,
+                            (self.pos[0] + j * self.side, self.pos[1] + i * self.side),
+                        )
+                    )
+                if row:
+                    shield.append(row)
+        self.grid = shield
+
     def update(self, dt: float) -> None:
-        pass
+        grid = []
+        for blocks in self.grid:
+            row = [block for block in blocks if block.hp > 0]
+            if row:
+                grid.append(row)
+        self.grid = grid
 
     def draw(self, surface: pygame.Surface) -> None:
-        super().draw(surface)
+        for row in self.grid:
+            for block in row:
+                block.draw(surface)

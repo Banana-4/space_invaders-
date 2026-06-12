@@ -38,12 +38,14 @@ class Play(State):
             0.1 / self.fps,
         )
         events_proxy.register(self, [EventID.SHOT_FIRED])
-        self.shields = [
-            Shield("shield.png", (100, 100), (0, 4 * self.win_size[1] // 5)),
-            Shield("shield.png", (100, 100), (200, 4 * self.win_size[1] // 5)),
-            Shield("shield.png", (100, 100), (400, 4 * self.win_size[1] // 5)),
-            Shield("shield.png", (100, 100), (600, 4 * self.win_size[1] // 5)),
-        ]
+        self.shields = []
+        self.gap_x = 10
+        x = self.gap_x
+        gap = 120
+        for i in range(4):
+            shield = Shield((x, 7 * self.win_size[1] // 8))
+            self.shields.append(shield)
+            x += shield.width + gap
 
     def clean(self) -> None:
         self.player_prj = [p for p in self.player_prj if p.alive]
@@ -58,6 +60,8 @@ class Play(State):
             p.update(dt)
         for p in self.alien_prj:
             p.update(dt)
+        for shield in self.shields:
+            shield.update(dt)
         self.collison(dt)
 
     def notify(self, event: Event) -> None:
@@ -75,7 +79,7 @@ class Play(State):
                 events_proxy.emitte(Event(EventID.QUIT_GAME, []))
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    events_proxy.emitte(Event(EventID.PAUSE_STATE, []))
+                    events_proxy.emitte(Event(EventID.PAUSE_STATE, [self.score]))
         keys = pygame.key.get_pressed()
         if keys[pygame.K_a]:
             self.turret.move(True)
@@ -124,14 +128,16 @@ class Play(State):
                 events_proxy.emitte(Event(EventID.HIT, []))
                 prj.kill()
             for shield in self.shields:
-                if prj.box.colliderect(shield.box):
-                    prj.kill()
-                    shield.hit()
+                for blocks in shield.grid:
+                    for block in blocks:
+                        if prj.box.colliderect(block.box):
+                            prj.kill()
+                            block.hit()
         collision = False
         for line in self.alien_fleet.fleet:
             for ship in line:
                 if ship.pos[1] >= self.win_size[1] - self.win_size[1] // 5:
-                    events_proxy.emitte(Event(EventID.LOSE, []))
+                    events_proxy.emitte(Event(EventID.END, [self.score]))
                     collision = True
                     break
                 if ship.pos[0] < 0:
@@ -159,6 +165,8 @@ class Play(State):
                         ship.hit()
                         self.score += ship.points
             for shield in self.shields:
-                if prj.box.colliderect(shield.box):
-                    prj.kill()
-                    shield.hit()
+                for blocks in shield.grid:
+                    for block in blocks:
+                        if prj.box.colliderect(block.box):
+                            prj.kill()
+                            block.hit()

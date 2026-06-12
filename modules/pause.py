@@ -1,22 +1,21 @@
-from typing import Callable
-
 import pygame
 
 from modules.events import Event, EventID, events_proxy
-from modules.menu import Menu, MenuItem
+from modules.menu import Menu
 from modules.state_interface import State
 
 
 class Pause(State):
-    def __init__(self, win_size) -> None:
+    def __init__(self, win_size, score) -> None:
         self.win_size = win_size
+        self.score = score
         items = [
             ("resume", lambda: events_proxy.emitte(Event(EventID.RESUME, []))),
             (
                 "restart",
                 lambda: events_proxy.emitte(Event(EventID.RESTART, [])),
             ),
-            ("quit", lambda: events_proxy.emitte(Event(EventID.MENU_STATE, []))),
+            ("quit", lambda: events_proxy.emitte(Event(EventID.END, [self.score]))),
         ]
 
         self.menu_size = self.win_size[0] // 3, 134
@@ -40,8 +39,6 @@ class Pause(State):
             self.style,
             self.layout,
         )
-        self.focused = 0
-        self.focus_move = 0
 
     def handle_input(self) -> None:
         for event in pygame.event.get():

@@ -31,8 +31,7 @@ class Game:
                 EventID.PAUSE_STATE,
                 EventID.RESUME,
                 EventID.RESTART,
-                EventID.WIN,
-                EventID.LOSE,
+                EventID.END,
             ],
         )
 
@@ -60,16 +59,14 @@ class Game:
             self.state = MainMenu([], self.win_size)
         elif event.id == EventID.PAUSE_STATE:
             self.active_states.append(self.state)
-            self.state = Pause(self.win_size)
+            self.state = Pause(self.win_size, event.data[0])
         elif event.id == EventID.RESUME:
             self.state = self.active_states.pop()
         elif event.id == EventID.RESTART:
             old_state = self.active_states.pop()
             self.state = Play(self.win_size, self.fps)
-        elif event.id == EventID.WIN:
-            self.state = EndGame(self.win_size, True)
-        elif event.id == EventID.LOSE:
-            self.state = EndGame(self.win_size, False)
+        elif event.id == EventID.END:
+            self.state = EndGame(self.win_size, event.data[0])
         if old_state != self.state:
             events_proxy.unregister(old_state)
 

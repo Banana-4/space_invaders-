@@ -1,7 +1,6 @@
 import csv
 import heapq
 import os
-from asyncio.unix_events import SelectorEventLoop
 
 import pygame
 
@@ -14,16 +13,19 @@ class Highscores(State):
         self.win_size = win_size
         self.csv_file = os.path.join("data", "scores.csv")
         self.scores = []
+        self.max = 10
         try:
             heap = []
             with open(self.csv_file, mode="r") as file:
                 reader = csv.DictReader(file)
                 for row in reader:
                     heapq.heappush(heap, (-int(row["score"]), row["name"], row["date"]))
+                    if len(heap) == self.max:
+                        break
             place = 1
             while heap:
                 scores, name, date = heapq.heappop(heap)
-                self.scores.append(f"{place}. {-scores} {name} {date}")
+                self.scores.append(f"{place}. {name} Score: {-scores}")
                 place += 1
         except FileNotFoundError:
             events_proxy.emitte(Event(EventID.MENU_STATE, []))
